@@ -119,7 +119,7 @@ d3.interval(function(){
         new_call = "https://free-ice-cream.appspot.com/v1/tables/"+tableId+"?nocache=" + (new Date()).getTime();
         console.log(new_call)
         d3.json(new_call)
-            .header("X-API-KEY", " Insert key Here :) ")
+            .header("X-API-KEY", api_key)
             .get(function(error, data) {
                 current_layout_checksum = data.layout_checksum
                 if (current_layout_checksum !== previous_layout_checksum) {
@@ -708,7 +708,7 @@ clearTable = function() {
     if(!clearingTable) {
         console.log("clearing table...");
         clearingTable = true;
-        setHeader = function(xhr) { xhr.setRequestHeader("X-API-KEY", " Insert Key Here :) "); }
+        setHeader = function(xhr) { xhr.setRequestHeader("X-API-KEY", api_key); }
         $.ajax({
               url: 'https://free-ice-cream.appspot.com/v1/tables/' + tableId + '/clear',
               type: 'PUT',
