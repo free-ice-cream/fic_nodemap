@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<script src="./jquery.min.js"></script>
+</head>
+<body>
+
+<h1>Select a Table</h1>
+<ul id="table-list"></ul>
+
+<script>
+	setHeader = function(xhr) { xhr.setRequestHeader("X-API-KEY", "95e5d50a-5271-4ea0-a6fb-0165bdde92f5"); }
+	$.ajax({
+          url: 'https://free-ice-cream.appspot.com/v1/tables/',
+          type: 'GET',
+          dataType: 'json',
+          success: function(data) { 
+			console.log(data); 
+          	data.forEach(function(table) {
+          		$("#table-list").append("<li><a href='./prototype_final.html?tableId="+table.id+"'>"+table.name+"</a></li>");
+          	})
+          },
+          error: function(error) { console.log(error); },
+          beforeSend: setHeader
+        });
+</script>
+
+</body>
