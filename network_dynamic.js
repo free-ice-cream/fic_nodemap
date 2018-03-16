@@ -122,9 +122,84 @@ d3.interval(function(){
             .header("X-API-KEY", api_key)
             .get(function(error, data) {
                 current_layout_checksum = data.layout_checksum
-                if (current_layout_checksum !== previous_layout_checksum) {
+                if (current_layout_checksum !== previous_layout_checksum || previous_goal != current_goal) { // @JMLD added current/previous goal comparison to if statement
 
                     previous_layout_checksum = current_layout_checksum;
+
+                    // @JMLD
+
+                    // Record the current goal for next time (when it will become the previous goal)
+                    previous_goal = current_goal;
+
+                    // If there's a current goal selected...
+                    if ( current_goal ){
+                      // ...and it's a valid goal #
+                      if (current_goal > 0 && current_goal < 8){
+
+                        // console.log('BEFORE',data);
+
+                        // Loop through nodes to find goal IDs
+                        for (var key in data.network.nodes) {
+                          if (data.network.nodes.hasOwnProperty(key)) {
+                            var el = data.network.nodes[key];
+                            // If this node is our selected goal node
+                            if ( el['group'] == current_goal ){
+                              // Save the goal id for use later
+                              goal_id = el['id'];
+                              // Exit the loop
+                              break;
+                            }
+                          }
+                        }
+
+                        // Set variables
+                        var
+                          // Array to store the filtered list of node IDs that link to the goal node
+                          source_nodes = Array(),
+                          // Array to store the filtered list of LINKS
+                          filtered_links = new Array(),
+                          // Array to store the filtered list of NODES
+                          filtered_nodes = new Array()
+                        ;
+
+                        // Add the goal node ID in to the list of source nodes (very important!)
+                        source_nodes.push( goal_id );
+
+                        // Loop through LINKS
+                        for (var key in data.network.links) {
+                          if (data.network.links.hasOwnProperty(key)) {
+                            var el = data.network.links[key];
+                            // If the target of this link is our selected goal
+                            if ( el['target'] == goal_id ){
+                              // add this link to the new array
+                              filtered_links.push( el );
+                              // Record the ID of the source, so when we loop through the nodes we know which ones to keep
+                              source_nodes.push( el['source'] );
+                            }
+                          }
+                        }
+
+                        // Loop through NODES
+                        for (var key in data.network.nodes) {
+                          if (data.network.nodes.hasOwnProperty(key)) {
+                            var el = data.network.nodes[key];
+                            // If this node is connected to our selected goal node
+                            if ( source_nodes.indexOf( el['id'] ) != -1 ){
+                              // add this node to the new array
+                              filtered_nodes.push( el );
+                            }
+                          }
+                        }
+
+                        // Replace the nodes and links with our filtered lists
+                        data.network.links = filtered_links;
+                        data.network.nodes = filtered_nodes;
+
+                        // console.log('AFTER',data);
+                      }
+                    }
+
+                    // End @JMLD
 
                     graph = data.network;
                     nodes = graph.nodes;
@@ -1001,3 +1076,30 @@ function networkLayout() {
 function tooltipClose(){
     d3.selectAll('.tooltip').attr('width', 0).attr('height', 0).style('opacity', 0).attr('font-size', '0px');
 };
+
+// @JMLD
+
+// Variable to store the current goal - set to false by default because we want to show the regular data unless a button is clicked
+var previous_goal = false;
+var current_goal = false;
+
+// Listener for clicking a filter button
+$('.filter_btn').on('click', function(e) {
+  // Deselect all other filter buttons
+  $('.filter_btn').not( $(this) ).removeClass('current');
+  // Toggle this filter button on/off
+  $(this).toggleClass('current');
+  // If we've just toggled it on...
+  if ( $(this).hasClass('current') == true ){
+    // Set current goal, based on which button we clicked
+    current_goal = $(this).attr('data-goal-id');
+  // If we've toggled it off
+  } else {
+    // set current goal to false, so we
+    current_goal = false;
+  }
+  // Trigger getting of data?
+  // TODO
+});
+
+// End @JMLD
