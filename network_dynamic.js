@@ -875,7 +875,7 @@ svg.append('text')
     .attr('fill', 'white')
     .attr('class', 'h1')
     .attr('text-anchor', 'middle')
-    .text('Playable Data for Human Health')
+    .text('2030 Hive Mind at Data4SDGs ')
 
 /////////////////////
 //////legend////////
