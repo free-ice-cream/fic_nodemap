@@ -114,19 +114,45 @@ clearingTable = false;
 
 d3.interval(function(){
 
+    // JMLD
+    // If current_goal is set (i.e. anything but false) use the full table (because we don't want it filtering by what the users are connected to), otherwise use the regular table from the URL
+    var current_table = current_goal ? full_table : tableId;
+
     console.log("clearing: " + clearingTable);
     if(!clearingTable) {
-        new_call = "https://free-ice-cream.appspot.com/v1/tables/"+tableId+"?nocache=" + (new Date()).getTime();
+        new_call = "https://free-ice-cream.appspot.com/v1/tables/"+current_table+"?nocache=" + (new Date()).getTime();
         console.log(new_call)
         d3.json(new_call)
             .header("X-API-KEY", api_key)
             .get(function(error, data) {
+              if (data){
                 current_layout_checksum = data.layout_checksum
                 if (current_layout_checksum !== previous_layout_checksum || previous_goal != current_goal) { // @JMLD added current/previous goal comparison to if statement
 
                     previous_layout_checksum = current_layout_checksum;
 
                     // @JMLD
+
+                    // See how many players are connected...
+                    var i, players_total = 0;
+                    for (i in data.players) {
+                        if (data.players.hasOwnProperty(i)) {
+                            players_total++;
+                        }
+                    }
+
+                    // If there is no current goal already set (because we don't want to hide the filter buttons when we're filtering)
+                    if (!current_goal){
+                      // If there aren't enough players
+                      if ( players_total < players_required_for_filtering ){
+                        // Hide filter buttons
+                        $('#filter_btns').hide();
+                      // If there are
+                      } else {
+                        // Show filter buttons
+                        $('#filter_btns').show();
+                      }
+                    }
 
                     // Record the current goal for next time (when it will become the previous goal)
                     previous_goal = current_goal;
@@ -285,6 +311,7 @@ d3.interval(function(){
                     // console.log('GET call executed - all nodes and links update');
                     }
                 }
+              } // End if (data)
 
             });
     }
@@ -1079,9 +1106,17 @@ function tooltipClose(){
 
 // @JMLD
 
-// Variable to store the current goal - set to false by default because we want to show the regular data unless a button is clicked
-var previous_goal = false;
-var current_goal = false;
+// Variables
+var
+  // The ID of the table that contains all data (used when we filter the map by goal)
+  full_table = "0f71297a-fe57-11e6-8aae-7f30d05f4207",
+  // var to store the previous goal - so we can check whether a goal has changed
+  previous_goal = false,
+  // var to store the current goal - set to false by default because we want to show the regular data unless a button is clicked
+  current_goal = false,
+  // Number of players required to trigger display of the buttons
+  players_required_for_filtering = 1
+;
 
 // Listener for clicking a filter button
 $('.filter_btn').on('click', function(e) {
