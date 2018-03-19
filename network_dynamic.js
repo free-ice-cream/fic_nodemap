@@ -112,209 +112,212 @@ var previous_layout_checksum = "";
 
 clearingTable = false;
 
+function setTable(){
+  // JMLD
+  // If current_goal is set (i.e. anything but false) use the full table (because we don't want it filtering by what the users are connected to), otherwise use the regular table from the URL
+  var current_table = current_goal ? full_table : tableId;
+
+  console.log("clearing: " + clearingTable);
+  if(!clearingTable) {
+      new_call = "https://free-ice-cream.appspot.com/v1/tables/"+current_table+"?nocache=" + (new Date()).getTime();
+      console.log(new_call)
+      d3.json(new_call)
+          .header("X-API-KEY", api_key)
+          .get(function(error, data) {
+            if (data){
+              current_layout_checksum = data.layout_checksum
+              if (current_layout_checksum !== previous_layout_checksum || previous_goal != current_goal) { // @JMLD added current/previous goal comparison to if statement
+
+                  previous_layout_checksum = current_layout_checksum;
+
+                  // @JMLD
+
+                  // See how many players are connected...
+                  var i, players_total = 0;
+                  for (i in data.players) {
+                      if (data.players.hasOwnProperty(i)) {
+                          players_total++;
+                      }
+                  }
+
+                  // If there is no current goal already set (because we don't want to hide the filter buttons when we're filtering)
+                  if (!current_goal){
+                    // If there aren't enough players
+                    if ( players_total < players_required_for_filtering ){
+                      // Hide filter buttons
+                      $('#filter_btns').hide();
+                    // If there are
+                    } else {
+                      // Show filter buttons
+                      $('#filter_btns').show();
+                    }
+                  }
+
+                  // Record the current goal for next time (when it will become the previous goal)
+                  previous_goal = current_goal;
+
+                  // If there's a current goal selected...
+                  if ( current_goal ){
+                    // ...and it's a valid goal #
+                    if (current_goal > 0 && current_goal < 8){
+
+                      // console.log('BEFORE',data);
+
+                      // Loop through nodes to find goal IDs
+                      for (var key in data.network.nodes) {
+                        if (data.network.nodes.hasOwnProperty(key)) {
+                          var el = data.network.nodes[key];
+                          // If this node is our selected goal node
+                          if ( el['group'] == current_goal ){
+                            // Save the goal id for use later
+                            goal_id = el['id'];
+                            // Exit the loop
+                            break;
+                          }
+                        }
+                      }
+
+                      // Set variables
+                      var
+                        // Array to store the filtered list of node IDs that link to the goal node
+                        source_nodes = Array(),
+                        // Array to store the filtered list of LINKS
+                        filtered_links = new Array(),
+                        // Array to store the filtered list of NODES
+                        filtered_nodes = new Array()
+                      ;
+
+                      // Add the goal node ID in to the list of source nodes (very important!)
+                      source_nodes.push( goal_id );
+
+                      // Loop through LINKS
+                      for (var key in data.network.links) {
+                        if (data.network.links.hasOwnProperty(key)) {
+                          var el = data.network.links[key];
+                          // If the target of this link is our selected goal
+                          if ( el['target'] == goal_id ){
+                            // add this link to the new array
+                            filtered_links.push( el );
+                            // Record the ID of the source, so when we loop through the nodes we know which ones to keep
+                            source_nodes.push( el['source'] );
+                          }
+                        }
+                      }
+
+                      // Loop through NODES
+                      for (var key in data.network.nodes) {
+                        if (data.network.nodes.hasOwnProperty(key)) {
+                          var el = data.network.nodes[key];
+                          // If this node is connected to our selected goal node
+                          if ( source_nodes.indexOf( el['id'] ) != -1 ){
+                            // add this node to the new array
+                            filtered_nodes.push( el );
+                          }
+                        }
+                      }
+
+                      // Replace the nodes and links with our filtered lists
+                      data.network.links = filtered_links;
+                      data.network.nodes = filtered_nodes;
+
+                      // console.log('AFTER',data);
+                    }
+                  }
+
+                  // End @JMLD
+
+                  graph = data.network;
+                  nodes = graph.nodes;
+
+                  nodeMaxValue = d3.max(graph.nodes, function(d) {
+                      return parseInt(d['resources']);
+                  });
+                  nodeMinValue = d3.min(graph.nodes, function(d) {
+                      return parseInt(d['resources']);
+                  });
+                  linkMaxValue = d3.max(graph.links, function(d) {
+                      return parseInt(d['weight']);
+                  });
+                  linkMinValue = d3.min(graph.links, function(d) {
+                      return parseInt(d['weight']);
+                  });
+
+                  // number of goals
+                  goalArray = [];
+                  policiesArray = [];
+                  playerArray = [];
+                  for (var h = 0; h < graph.nodes.length; h++) {
+                      if(graph.nodes[h].group === 0 ){
+                          graph.nodes[h].index = policies_index++;
+                          policiesArray.push(graph.nodes);
+                      }
+                      else if(graph.nodes[h].group < 8 ){
+                          graph.nodes[h].index = goals_index++;
+                          console.log(graph.nodes[h].index + 'goals');
+                          goalArray.push(graph.nodes);
+                      }
+                      else{
+                          graph.nodes[h].index = players_index++;
+                          playerArray.push(graph.nodes);
+                      }
+                  }
+
+                  linkScale = d3.scaleLinear().domain([linkMinValue, 0, linkMaxValue]).range([12,0,12]);
+                  radiusScale = d3.scaleLinear().domain([nodeMinValue, nodeMaxValue]).range([20,40]);
+                  secondradiusScale = d3.scaleLinear().domain([nodeMinValue, nodeMaxValue]).range([1,50]);
+
+                  drawnetwork(graph);
+                  console.log('GET call executed - the whole network redraws')
+              } else {
+                  graph2 = data.network;
+                  //console.log(graph2.nodes);
+                  for (var b = 0; b < graph2.nodes.length; b++) {
+
+                      //console.log(graph2.nodes[b].resources);
+                      d3.select('.tooltip'+graph2.nodes[b].id.replace(/-/g, ''))
+                          .html(nodeInfoHTML(graph2.nodes[b]));
+                      d3.select('.a'+graph2.nodes[b].id.replace(/-/g, '')).attr('r', radiusScale(graph2.nodes[b].resources));
+                      /*d3.select('.link'+graph2.nodes[b].id.replace(/-/g, '')).attr("stroke", function(){
+                          console.log(graph2.nodes[b]);
+                        if(graph2.nodes[b].active) {
+                          return "white";
+                        } else {
+                          return "gray";
+                        }
+                      });*/
+                      d3.select('.link'+graph2.nodes[b].id.replace(/-/g, '')).attr("stroke-width", function(){
+
+                                weightInt = parseInt(graph2.nodes[b].weight);
+                                if(parseInt(graph2.nodes[b].weight) === 0){
+                                    return 1;
+                                } else {return linkScale(weightInt);}
+                      });
+                      d3.select('.nodetext'+graph2.nodes[b].id.replace(/-/g, '')).text(function(){
+                              return nodeText(graph2.nodes[b]);
+                          });
+                      d3.selectAll('.nearlyActiveNode').attr("r", function(){
+                          if(graph2.nodes[b].active_level <= graph2.nodes[b].activation_amount - ((graph2.nodes[b].activation_amount / 100) * 10)){
+                              return 0;
+                          }
+                          else{return radiusScale(graph2.nodes[b].resources);}
+                      });
+
+                      // apply fill on update
+                      if(graph2.nodes[b].group === 0) {
+                          d3.select('.a'+graph2.nodes[b].id.replace(/-/g, '')).attr('fill', graph2.nodes[b].active === true ? nodeColourPolicy : nodeInactiveFill);
+                      }
+
+                  // console.log('GET call executed - all nodes and links update');
+                  }
+              }
+            } // End if (data)
+
+          });
+  }
+}
+
 d3.interval(function(){
-
-    // JMLD
-    // If current_goal is set (i.e. anything but false) use the full table (because we don't want it filtering by what the users are connected to), otherwise use the regular table from the URL
-    var current_table = current_goal ? full_table : tableId;
-
-    console.log("clearing: " + clearingTable);
-    if(!clearingTable) {
-        new_call = "https://free-ice-cream.appspot.com/v1/tables/"+current_table+"?nocache=" + (new Date()).getTime();
-        console.log(new_call)
-        d3.json(new_call)
-            .header("X-API-KEY", api_key)
-            .get(function(error, data) {
-              if (data){
-                current_layout_checksum = data.layout_checksum
-                if (current_layout_checksum !== previous_layout_checksum || previous_goal != current_goal) { // @JMLD added current/previous goal comparison to if statement
-
-                    previous_layout_checksum = current_layout_checksum;
-
-                    // @JMLD
-
-                    // See how many players are connected...
-                    var i, players_total = 0;
-                    for (i in data.players) {
-                        if (data.players.hasOwnProperty(i)) {
-                            players_total++;
-                        }
-                    }
-
-                    // If there is no current goal already set (because we don't want to hide the filter buttons when we're filtering)
-                    if (!current_goal){
-                      // If there aren't enough players
-                      if ( players_total < players_required_for_filtering ){
-                        // Hide filter buttons
-                        $('#filter_btns').hide();
-                      // If there are
-                      } else {
-                        // Show filter buttons
-                        $('#filter_btns').show();
-                      }
-                    }
-
-                    // Record the current goal for next time (when it will become the previous goal)
-                    previous_goal = current_goal;
-
-                    // If there's a current goal selected...
-                    if ( current_goal ){
-                      // ...and it's a valid goal #
-                      if (current_goal > 0 && current_goal < 8){
-
-                        // console.log('BEFORE',data);
-
-                        // Loop through nodes to find goal IDs
-                        for (var key in data.network.nodes) {
-                          if (data.network.nodes.hasOwnProperty(key)) {
-                            var el = data.network.nodes[key];
-                            // If this node is our selected goal node
-                            if ( el['group'] == current_goal ){
-                              // Save the goal id for use later
-                              goal_id = el['id'];
-                              // Exit the loop
-                              break;
-                            }
-                          }
-                        }
-
-                        // Set variables
-                        var
-                          // Array to store the filtered list of node IDs that link to the goal node
-                          source_nodes = Array(),
-                          // Array to store the filtered list of LINKS
-                          filtered_links = new Array(),
-                          // Array to store the filtered list of NODES
-                          filtered_nodes = new Array()
-                        ;
-
-                        // Add the goal node ID in to the list of source nodes (very important!)
-                        source_nodes.push( goal_id );
-
-                        // Loop through LINKS
-                        for (var key in data.network.links) {
-                          if (data.network.links.hasOwnProperty(key)) {
-                            var el = data.network.links[key];
-                            // If the target of this link is our selected goal
-                            if ( el['target'] == goal_id ){
-                              // add this link to the new array
-                              filtered_links.push( el );
-                              // Record the ID of the source, so when we loop through the nodes we know which ones to keep
-                              source_nodes.push( el['source'] );
-                            }
-                          }
-                        }
-
-                        // Loop through NODES
-                        for (var key in data.network.nodes) {
-                          if (data.network.nodes.hasOwnProperty(key)) {
-                            var el = data.network.nodes[key];
-                            // If this node is connected to our selected goal node
-                            if ( source_nodes.indexOf( el['id'] ) != -1 ){
-                              // add this node to the new array
-                              filtered_nodes.push( el );
-                            }
-                          }
-                        }
-
-                        // Replace the nodes and links with our filtered lists
-                        data.network.links = filtered_links;
-                        data.network.nodes = filtered_nodes;
-
-                        // console.log('AFTER',data);
-                      }
-                    }
-
-                    // End @JMLD
-
-                    graph = data.network;
-                    nodes = graph.nodes;
-
-                    nodeMaxValue = d3.max(graph.nodes, function(d) {
-                        return parseInt(d['resources']);
-                    });
-                    nodeMinValue = d3.min(graph.nodes, function(d) {
-                        return parseInt(d['resources']);
-                    });
-                    linkMaxValue = d3.max(graph.links, function(d) {
-                        return parseInt(d['weight']);
-                    });
-                    linkMinValue = d3.min(graph.links, function(d) {
-                        return parseInt(d['weight']);
-                    });
-
-                    // number of goals
-                    goalArray = [];
-                    policiesArray = [];
-                    playerArray = [];
-                    for (var h = 0; h < graph.nodes.length; h++) {
-                        if(graph.nodes[h].group === 0 ){
-                            graph.nodes[h].index = policies_index++;
-                            policiesArray.push(graph.nodes);
-                        }
-                        else if(graph.nodes[h].group < 8 ){
-                            graph.nodes[h].index = goals_index++;
-                            console.log(graph.nodes[h].index + 'goals');
-                            goalArray.push(graph.nodes);
-                        }
-                        else{
-                            graph.nodes[h].index = players_index++;
-                            playerArray.push(graph.nodes);
-                        }
-                    }
-
-                    linkScale = d3.scaleLinear().domain([linkMinValue, 0, linkMaxValue]).range([12,0,12]);
-                    radiusScale = d3.scaleLinear().domain([nodeMinValue, nodeMaxValue]).range([20,40]);
-                    secondradiusScale = d3.scaleLinear().domain([nodeMinValue, nodeMaxValue]).range([1,50]);
-
-                    drawnetwork(graph);
-                    console.log('GET call executed - the whole network redraws')
-                } else {
-                    graph2 = data.network;
-                    //console.log(graph2.nodes);
-                    for (var b = 0; b < graph2.nodes.length; b++) {
-
-                        //console.log(graph2.nodes[b].resources);
-                        d3.select('.tooltip'+graph2.nodes[b].id.replace(/-/g, ''))
-                            .html(nodeInfoHTML(graph2.nodes[b]));
-                        d3.select('.a'+graph2.nodes[b].id.replace(/-/g, '')).attr('r', radiusScale(graph2.nodes[b].resources));
-                        /*d3.select('.link'+graph2.nodes[b].id.replace(/-/g, '')).attr("stroke", function(){
-                            console.log(graph2.nodes[b]);
-                          if(graph2.nodes[b].active) {
-                            return "white";
-                          } else {
-                            return "gray";
-                          }
-                        });*/
-                        d3.select('.link'+graph2.nodes[b].id.replace(/-/g, '')).attr("stroke-width", function(){
-
-                                  weightInt = parseInt(graph2.nodes[b].weight);
-                                  if(parseInt(graph2.nodes[b].weight) === 0){
-                                      return 1;
-                                  } else {return linkScale(weightInt);}
-                        });
-                        d3.select('.nodetext'+graph2.nodes[b].id.replace(/-/g, '')).text(function(){
-                                return nodeText(graph2.nodes[b]);
-                            });
-                        d3.selectAll('.nearlyActiveNode').attr("r", function(){
-                            if(graph2.nodes[b].active_level <= graph2.nodes[b].activation_amount - ((graph2.nodes[b].activation_amount / 100) * 10)){
-                                return 0;
-                            }
-                            else{return radiusScale(graph2.nodes[b].resources);}
-                        });
-
-                        // apply fill on update
-                        if(graph2.nodes[b].group === 0) {
-                            d3.select('.a'+graph2.nodes[b].id.replace(/-/g, '')).attr('fill', graph2.nodes[b].active === true ? nodeColourPolicy : nodeInactiveFill);
-                        }
-
-                    // console.log('GET call executed - all nodes and links update');
-                    }
-                }
-              } // End if (data)
-
-            });
-    }
+  setTable();
 }, 5000);
 
 function drawnetwork(newdata) {
@@ -1133,8 +1136,8 @@ $('.filter_btn').on('click', function(e) {
     // set current goal to false, so we
     current_goal = false;
   }
-  // Trigger getting of data?
-  // TODO
+  // Trigger getting of data
+  setTable();
 });
 
 // End @JMLD
