@@ -15,11 +15,14 @@
           url: 'https://free-ice-cream.appspot.com/v1/tables/',
           type: 'GET',
           dataType: 'json',
-          success: function(data) { 
-			console.log(data); 
+          success: function(data) {
+			console.log(data);
           	data.forEach(function(table) {
-          		$("#table-list").append("<li><a href='./prototype_final.html?tableId="+table.id+"'>"+table.name+"</a></li>");
-          	})
+							// SJ This if(){}  hides the test table so that we know it will always be a full network.
+							if(table.id != "0f71297a-fe57-11e6-8aae-7f30d05f4207"){//
+          			$("#table-list").append("<li><a href='./prototype_final.html?tableId="+table.id+"'>"+table.name+"</a></li>");
+							}
+						})
           },
           error: function(error) { console.log(error); },
           beforeSend: setHeader
