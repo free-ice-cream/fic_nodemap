@@ -316,11 +316,13 @@ function setTable(){
   }
 }
 
+setTable();
 d3.interval(function(){
   setTable();
 }, 5000);
 
 function drawnetwork(newdata) {
+
     nodes = newdata.nodes;
     links = newdata.links;
 
@@ -621,7 +623,7 @@ function drawnetwork(newdata) {
 } // drawnetwork ends
 
 function dragstarted(d) {
-    if(d3.select('.circleLayout').classed('circleLayoutActive')){
+    if ( $('#grid_view_btn').hasClass('current') == true ){
         return ''
     }
     else{
@@ -632,7 +634,7 @@ function dragstarted(d) {
 }
 
 function dragged(d) {
-    if(d3.select('.circleLayout').classed('circleLayoutActive')){
+    if ( $('#grid_view_btn').hasClass('current') == true ){
         return ''
     }
     else{
@@ -642,7 +644,7 @@ function dragged(d) {
 }
 
 function dragended(d) {
-    if(d3.select('.circleLayout').classed('circleLayoutActive')){
+    if ( $('#grid_view_btn').hasClass('current') == true ){
         return ''
     }
     else{
@@ -654,7 +656,7 @@ function dragended(d) {
 
 
 function tickedd3() {
-    if(d3.select('.circleLayout').classed('circleLayoutActive') ){
+    if ( $('#grid_view_btn').hasClass('current') == true ){
         console.log('circle view active');
         link
             .attr("x1", function(d) { return d.source.circlex; })
@@ -691,124 +693,6 @@ function tickedd3() {
     }
 }
 
-///////////////////////////////
-/////////navigation////////////
-//////////////////////////////
-
-var buttonWidth = 80;
-
-// button for grid layout
-
-circleLayoutPosX = 0;
-
-svg.append('rect')
-    .attr('x', circleLayoutPosX)
-    .attr('y', 2)
-    .attr('width', buttonWidth)
-    .attr('height', 55)
-    .attr('stroke', '#333')
-    .attr('fill', 'transparent')
-    .attr('stroke', 'white')
-    .attr('stroke-width', 3)
-    .attr('rx', 5)
-    .attr('ry', 5)
-    .attr('class', 'circleLayout')
-    .on('click', circleLayout)
-
-svg.append('text')
-    .attr('x', circleLayoutPosX + buttonWidth / 2)
-    .attr('y', 28)
-    .attr('fill', 'white')
-    .attr('text-anchor', 'middle')
-    .text('Grid')
-    .on('click', circleLayout)
-
-svg.append('text')
-    .attr('x', circleLayoutPosX + buttonWidth / 2)
-    .attr('y', 46)
-    .attr('fill', 'white')
-    .attr('text-anchor', 'middle')
-    .text('View')
-    .on('click', circleLayout)
-
-// button for mesh layout
-
-var meshLayoutPosX = 100;
-
-svg.append('rect')
-    .attr('x', meshLayoutPosX)
-    .attr('y', 2)
-    .attr('width', buttonWidth)
-    .attr('height', 55)
-    .attr('stroke', '#333')
-    .attr('fill', 'transparent')
-    .attr('stroke', 'white')
-    .attr('stroke-width', 3)
-    .attr('rx', 5)
-    .attr('ry', 5)
-    .attr('class', 'networkLayout')
-    .on('click', networkLayout)
-
-svg.append('text')
-    .attr('x', meshLayoutPosX + buttonWidth / 2)
-    .attr('y', 28)
-    .attr('fill', 'white')
-    .attr('text-anchor', 'middle')
-    .text('Mesh')
-    .on('click', networkLayout)
-
-
-svg.append('text')
-    .attr('x', meshLayoutPosX + buttonWidth / 2)
-    .attr('y', 46)
-    .attr('fill', 'white')
-    .attr('text-anchor', 'middle')
-    .text('View')
-    .on('click', networkLayout)
-
-
-// button for clear table
-
-var clearTablePosX = 200;
-
-svg.append('rect')
-    .attr('x', clearTablePosX)
-    .attr('y', 2)
-    .attr('width', 80)
-    .attr('height', 55)
-    .attr('stroke', '#333')
-    .attr('fill', 'transparent')
-    .attr('stroke', 'white')
-    .attr('stroke-width', 3)
-    .attr('rx', 5)
-    .attr('ry', 5)
-    .attr('class', 'networkLayout')
-    .on('click', networkLayout)
-
-svg.append('text')
-    .attr('x', clearTablePosX + buttonWidth/2)
-    .attr('y', 28)
-    .attr('fill', 'white')
-    .attr('text-anchor', 'middle')
-    .text('Whole')
-    .on('click', networkLayout)
-
-
-svg.append('text')
-    .attr('x', clearTablePosX + buttonWidth/2)
-    .attr('y', 46)
-    .attr('fill', 'white')
-    .attr('text-anchor', 'middle')
-    .text('Network')
-    .on('click', function() { clearTable(); })
-
-$(document).ready(function() {
-    $("#clearButtonDiv").click(function() {
-        clearTable();
-    });
-});
-
-
 clearTable = function() {
     if(!clearingTable) {
         console.log("clearing table...");
@@ -830,42 +714,6 @@ clearTable = function() {
             });
     }
 }
-
-// button for reload page
-
-var reloadPosX = 300;
-
-svg.append('rect')
-    .attr('x', reloadPosX)
-    .attr('y', 2)
-    .attr('width', 80)
-    .attr('height', 55)
-    .attr('stroke', '#333')
-    .attr('fill', 'transparent')
-    .attr('stroke', 'white')
-    .attr('stroke-width', 3)
-    .attr('rx', 5)
-    .attr('ry', 5)
-    .attr('class', 'networkLayout')
-    .on('click', networkLayout)
-
-svg.append('text')
-    .attr('x', reloadPosX + buttonWidth/2)
-    .attr('y', 28)
-    .attr('fill', 'white')
-    .attr('text-anchor', 'middle')
-    .text('Reload')
-    .on('click', networkLayout)
-
-
-svg.append('text')
-    .attr('x', reloadPosX + buttonWidth/2)
-    .attr('y', 46)
-    .attr('fill', 'white')
-    .attr('text-anchor', 'middle')
-    .text('Table')
-    .on('click', function() { location.reload(); })
-
 
 // title
 
@@ -1022,8 +870,8 @@ svg.append('text')
 
 function circleLayout() {
     d3.selectAll('circle').transition();
-    d3.select('.circleLayout').classed('circleLayoutActive', true);
-    d3.select('.networkLayout').classed('networkLayoutActive', false);
+    // d3.select('.circleLayout').classed('circleLayoutActive', true);
+    // d3.select('.networkLayout').classed('networkLayoutActive', false);
 
     svg.append('text')
         .attr('x', policies_center_x)
@@ -1051,21 +899,21 @@ function circleLayout() {
 
     tooltipClose()
     simulation.stop();
-    link.transition().duration(5000)
+    link.transition().duration(transition_duration)
         .attr("x1", function(d) { return d.source.circlex; })
         .attr("y1", function(d) { return d.source.circley; })
         .attr("x2", function(d) { return d.target.circlex; })
         .attr("y2", function(d) { return d.target.circley; });
 
-    node.transition().duration(5000)
+    node.transition().duration(transition_duration)
         .attr("cx", function(d) { return d.circlex; })
         .attr("cy", function(d) { return d.circley; });
 
-    nearlyActiveNode.transition().duration(5000)
+    nearlyActiveNode.transition().duration(transition_duration)
         .attr("cx", function(d) { return d.circlex; })
         .attr("cy", function(d) { return d.circley; });
 
-    nodeTxt.transition().duration(5000)
+    nodeTxt.transition().duration(transition_duration)
         .attr("x", function(d) { return d.circlex + 20; })
         .attr("y", function(d) { return d.circley + 60; })
         .attr('text-anchor', 'start');
@@ -1076,27 +924,27 @@ function circleLayout() {
 function networkLayout() {
     d3.selectAll('circle').transition();
 
-    d3.select('.circleLayout').classed('circleLayoutActive', false);
-    d3.select('.networkLayout').classed('networkLayoutActive', true);
+    // d3.select('.circleLayout').classed('circleLayoutActive', false);
+    // d3.select('.networkLayout').classed('networkLayoutActive', true);
 
     d3.selectAll('.gridViewText').remove();
 
     tooltipClose();
-    link.transition().duration(5000)
+    link.transition().duration(transition_duration)
         .attr("x1", function(d) { return d.source.x; })
         .attr("y1", function(d) { return d.source.y; })
         .attr("x2", function(d) { return d.target.x; })
         .attr("y2", function(d) { return d.target.y; });
 
-    node.transition().duration(5000)
+    node.transition().duration(transition_duration)
         .attr("cx", function(d) { return d.x; })
         .attr("cy", function(d) { return d.y; });
 
-    nearlyActiveNode.transition().duration(5000)
+    nearlyActiveNode.transition().duration(transition_duration)
         .attr("cx", function(d) { return d.x; })
         .attr("cy", function(d) { return d.y; });
 
-    nodeTxt.transition().duration(5000)
+    nodeTxt.transition().duration(transition_duration)
         .attr("x", function(d) { return d.x; })
         .attr("y", function(d) { return d.y; })
         .attr('text-anchor', 'middle');
@@ -1111,6 +959,8 @@ function tooltipClose(){
 
 // Variables
 var
+  // How long animations last
+  transition_duration = 3000,
   // The ID of the table that contains all data (used when we filter the map by goal)
   full_table = "0f71297a-fe57-11e6-8aae-7f30d05f4207",
   // var to store the previous goal - so we can check whether a goal has changed
@@ -1123,20 +973,66 @@ var
 
 // Listener for clicking a filter button
 $('.filter_btn').on('click', function(e) {
+  // Prevent this from messing up
+  e.stopImmediatePropagation();
   // Deselect all other filter buttons
   $('.filter_btn').not( $(this) ).removeClass('current');
   // Toggle this filter button on/off
   $(this).toggleClass('current');
   // If we've just toggled it on...
   if ( $(this).hasClass('current') == true ){
+    // $('#grid_view_btn').addClass('disabled');
     // Set current goal, based on which button we clicked
     current_goal = $(this).attr('data-goal-id');
   // If we've toggled it off
   } else {
-    // set current goal to false, so we
+    // $('#grid_view_btn').removeClass('disabled');
+    // set current goal to false, so we can see the whole map again
     current_goal = false;
   }
   // Trigger getting of data
+  setTable();
+});
+
+// Listener for clicking a display button
+$('.display_btn').on('click', function(e) {
+  if ( $(this).hasClass('disabled') == false ){
+    // Enable any disabled buttons
+    $('.display_btn').removeClass('disabled');
+    // Prevent this from messing up
+    e.stopImmediatePropagation();
+    // Deselect all other display buttons
+    $('.display_btn').removeClass('current');
+    // Deselect all filter buttons
+    $('.filter_btn').not( $(this) ).removeClass('current');
+    if ( $(this).is('#mesh_view_btn') ){
+      // Toggle this button on/off
+      $(this).addClass('current');
+      if (current_goal){
+        $('.filter_btn').removeClass('current');
+        // set current goal to false, so we can see the whole map again
+        current_goal = false;
+      } else {
+        // Trigger the mesh view visualisation - default view
+        networkLayout();
+      }
+    } else if ( $(this).is('#grid_view_btn') ){
+      // Toggle this button on/off
+      $(this).addClass('current');
+      // Trigger the grid view visualisation
+      circleLayout();
+    } else if ( $(this).is('#whole_network_btn') ){
+      // Toggle this button on/off
+      $('#mesh_view_btn').addClass('current');
+      // Clear the table of any players
+      clearTable();
+      // Trigger the mesh view visualisation
+      networkLayout();
+    } else if ( $(this).is('#reload_table_btn') ){
+      // Reload the page
+      location.reload();
+    }
+  }
   setTable();
 });
 

@@ -96,6 +96,14 @@
                                   supported by Chrome and Opera */
     }
 
+    #display_btns {
+      position: fixed;
+      top: 2px;
+      left: 32px;
+      font-size: 24px;
+      text-align: left;
+    }
+
     #filter_btns {
       position: fixed;
       top: 120px;
@@ -103,15 +111,39 @@
       font-size: 24px;
       text-align: left;
     }
+
+    .display_btn,
+    .filter_btn {
+      text-align: center;
+      border: 3px solid #FFF;
+      margin: 8px 0 0;
+      border-radius: 8px;
+    }
+
+    .display_btn {
+      display: inline-block;
+      width: 80px;
+      line-height: 18px;
+      padding: 6px 0 9px;
+    }
+    .display_btn:hover,
+    .display_btn.current {
+      opacity: 1;
+      cursor: pointer;
+      background-color: rgba(255,255,255,0.333);
+    }
+    .display_btn.disabled,
+    .display_btn.disabled:hover {
+      opacity: 0.25;
+      cursor: default;
+      background-color: transparent;
+    }
+
     .filter_btn {
       display: block;
       width: 100px;
-      text-align: center;
-      border: 3px solid #FFF;
       opacity: 0.75;
-      margin: 8px 0 0;
       padding: 3px 0 6px;
-      border-radius: 8px;
     }
     .filter_btn.goal_1 {
       color: #e5243b;
@@ -141,6 +173,7 @@
       color: #0a97d9;
       border-color: #0a97d9;
     }
+
     .filter_btn:hover,
     .filter_btn.current {
       opacity: 1;
@@ -159,7 +192,12 @@
     <!-- <h3>TITLE HERE</h3> -->
     <svg width="1920" height="1080" class="d3 noselect active"></svg>
 
-    <div id="clearButtonDiv" style="border: 0px solid white; z-index: 100; position: absolute; width: 94px; height: 100px; top: 0; left: 221px "></div>
+    <div id="display_btns">
+      <span class="display_btn" id="grid_view_btn">Grid view</span>
+      <span class="display_btn current" id="mesh_view_btn">Mesh view</span>
+      <span class="display_btn" id="whole_network_btn">Whole network</span>
+      <span class="display_btn" id="reload_table_btn">Reload table</span>
+    </div>
 
     <div id="filter_btns" style="display:none;">
       Filter by:
