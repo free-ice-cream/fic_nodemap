@@ -28,6 +28,16 @@ var players_center_x;
 var policies_center_x;
 var goals_center_x;
 
+// @JMLD
+// variables to position the tooltip in relation to the centre
+// E.g. tooltipOffsetX = 50 & tooltipOffsetY = -10 will move the tooltip 50px to the right of the centre and 10px above it
+// Fiddle with these at your leisure @Simon
+var tooltipOffsetX = 0;
+var tooltipOffsetY = 0;
+
+// Decide whether to show the tooltip in the centre or not (useful for quickly switching back and forth @Simon)
+var tooltipCentred = true; //false;
+
 // get url parameter
 function getURLParameter(name) {
   return decodeURIComponent((new RegExp('[?|&]' + name + '=' + '([^&;]+?)(&|#|;|$)').exec(location.search) || [null, ''])[1].replace(/\+/g, '%20')) || null;
@@ -447,12 +457,28 @@ function drawnetwork(newdata) {
             coordinates = d3.mouse(this);
             var mousex = coordinates[0];
             var mousey = coordinates[1];
+            // @JMLD
+            // Calculate the position of the tooltip, based on the centre of the map and the size of the tooltip
+            var tooltipX = ($('svg.d3').width() / 2) + $('svg.d3').offset().left - (tooltipWidth / 2);
+            var tooltipY = ($('svg.d3').height() / 2) + $('svg.d3').offset().top - (tooltipHeight / 2);
             d3.select('.tooltip' + d.id.replace(/-/g, ''))
             .attr('x', function(){
+              // @JMLD
+              // Either show the tooltip centred in the map OR position it according to the mouse position, depending on (boolean) value of tooltipCentred
+              if (tooltipCentred){
+                return tooltipX + tooltipOffsetX;
+              } else {
                 return mousex + 15;
+              }
             })
             .attr('y', function(){
-                    return mousey +15;
+              // @JMLD
+              // Either show the tooltip centred in the map OR position it according to the mouse position, depending on (boolean) value of tooltipCentred
+              if (tooltipCentred){
+                return tooltipY + tooltipOffsetY;
+              } else {
+                return mousey + 15;
+              }
              })
             .attr('font-size', '18px')
             .attr('width', tooltipWidth)
