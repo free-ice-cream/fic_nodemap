@@ -3,7 +3,7 @@
 <html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link href="./css" rel="stylesheet">
 <!-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script> -->
-<script src="./jquery.min.js"></script>
+<script src="./vendor/jquery.min.js"></script>
 
 
 <style>
@@ -210,7 +210,12 @@
       <span class="filter_btn goal_7" data-goal-id="7">Goal 14</span>
     </div>
 
-<script src="./d3.v4.min.js"></script>
+
+<script src="./vendor/d3.v4.min.js"></script>
+<!-- <script src="./vendor/d3-geo.min.js"></script> -->
+<!-- <script src="./vendor/opentype.min.js"></script>
+<script src="./vendor/warp.js"></script>
+<script src="./vendor/svg-to-geojson.min.js"></script> -->
 <!-- <script src="js/network.js"></script> -->
 <!-- <script src="js/network_update_d3.js"></script> -->
 <script src="./api_key.js"></script>
@@ -219,7 +224,7 @@
 
 <div style="position: absolute; top:900px; left:1730px; background-color: #fff; padding: 15px" id="qrcode" title="{&quot;table&quot;: &quot;ff6bf6e8-fcca-11e6-83dc-657c299376b2&quot;}"><canvas width="128" height="128" style="display: none;"></canvas></div>
 
-<script src="./qrcode.min.js"></script>
+<script src="./vendor/qrcode.min.js"></script>
 <script>
     if(tableId) {
         var qrcode = '{"table": "'+tableId+'"}';
