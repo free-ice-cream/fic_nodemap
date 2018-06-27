@@ -461,8 +461,8 @@ function drawnetwork(newdata) {
             var mousey = coordinates[1];
             // @JMLD
             // Calculate the position of the tooltip, based on the centre of the map and the size of the tooltip
-            var tooltipX = ($('svg.d3').width() / 2) + $('svg.d3').offset().left - (tooltipWidth / 2);
-            var tooltipY = ($('svg.d3').height() / 2) + $('svg.d3').offset().top - (tooltipHeight / 2);
+            var tooltipX = ($('svg.d3').width() / 2) - (tooltipWidth / 2);
+            var tooltipY = ($('svg.d3').height() / 2) - (tooltipHeight / 2);
             d3.select('.tooltip' + d.id.replace(/-/g, ''))
             .attr('x', function(){
               // @JMLD
@@ -693,12 +693,16 @@ function tickedd3() {
             .attr("y2", function(d) { return d.target.circley; });
 
         node
-            .attr("cx", function(d) { return d.circlex; })
-            .attr("cy", function(d) { return d.circley; });
+            // .attr("cx", function(d) { return d.circlex; })
+            // .attr("cy", function(d) { return d.circley; });
+            .attr("cx", function(d) { return d.circlex = Math.max(visRadius, Math.min(width - visRadius, d.x)); })
+            .attr("cy", function(d) { return d.circley = Math.max(visRadius, Math.min(height - visRadius - 124, d.y)); });
 
         nearlyActiveNode
-            .attr("cx", function(d) { return d.circlex; })
-            .attr("cy", function(d) { return d.circley; });
+            // .attr("cx", function(d) { return d.circlex; })
+            // .attr("cy", function(d) { return d.circley; });
+            .attr("cx", function(d) { return d.circlex = Math.max(visRadius, Math.min(width - visRadius, d.x)); })
+            .attr("cy", function(d) { return d.circley = Math.max(visRadius, Math.min(height - visRadius - 124, d.y)); });
 
         nodeTxt
             .attr("x", function(d) { return d.circlex + 20; })
@@ -706,8 +710,11 @@ function tickedd3() {
             .attr('text-anchor', 'start');
     }
     else{
-        node.attr("cx", function(d) { return d.x; })
-            .attr("cy", function(d) { return d.y; })
+        node
+            // .attr("cx", function(d) { return d.x; })
+            // .attr("cy", function(d) { return d.y; })
+            .attr("cx", function(d) { return d.x = Math.max(visRadius, Math.min(width - visRadius, d.x)); })
+            .attr("cy", function(d) { return d.y = Math.max(visRadius, Math.min(height - visRadius - 124, d.y)); })
 
         link.attr("x1", function(d) { return d.source.x; })
               .attr("y1", function(d) { return d.source.y; })
@@ -716,8 +723,11 @@ function tickedd3() {
         nodeTxt.attr("x", function(d) { return d.x; })
             .attr("y", function(d) { return d.y; })
 
-        nearlyActiveNode.attr("cx", function(d) { return d.x; })
-            .attr("cy", function(d) { return d.y; })
+        nearlyActiveNode
+            // .attr("cx", function(d) { return d.x; })
+            // .attr("cy", function(d) { return d.y; })
+            .attr("cx", function(d) { return d.x = Math.max(visRadius, Math.min(width - visRadius, d.x)); })
+            .attr("cy", function(d) { return d.y = Math.max(visRadius, Math.min(height - visRadius - 124, d.y)); });
     }
 }
 
@@ -935,12 +945,16 @@ function circleLayout() {
         .attr("y2", function(d) { return d.target.circley; });
 
     node.transition().duration(transition_duration)
-        .attr("cx", function(d) { return d.circlex; })
-        .attr("cy", function(d) { return d.circley; });
+        // .attr("cx", function(d) { return d.circlex; })
+        // .attr("cy", function(d) { return d.circley; });
+        .attr("cx", function(d) { return d.circlex = Math.max(visRadius, Math.min(width - visRadius, d.x)); })
+        .attr("cy", function(d) { return d.circley = Math.max(visRadius, Math.min(height - visRadius - 124, d.y)); });
 
     nearlyActiveNode.transition().duration(transition_duration)
-        .attr("cx", function(d) { return d.circlex; })
-        .attr("cy", function(d) { return d.circley; });
+        // .attr("cx", function(d) { return d.circlex; })
+        // .attr("cy", function(d) { return d.circley; });
+        .attr("cx", function(d) { return d.circlex = Math.max(visRadius, Math.min(width - visRadius, d.x)); })
+        .attr("cy", function(d) { return d.circley = Math.max(visRadius, Math.min(height - visRadius - 124, d.y)); });
 
     nodeTxt.transition().duration(transition_duration)
         .attr("x", function(d) { return d.circlex + 20; })
@@ -966,12 +980,16 @@ function networkLayout() {
         .attr("y2", function(d) { return d.target.y; });
 
     node.transition().duration(transition_duration)
-        .attr("cx", function(d) { return d.x; })
-        .attr("cy", function(d) { return d.y; });
+        // .attr("cx", function(d) { return d.x; })
+        // .attr("cy", function(d) { return d.y; });
+        .attr("cx", function(d) { return d.x = Math.max(visRadius, Math.min(width - visRadius, d.x)); })
+        .attr("cy", function(d) { return d.y = Math.max(visRadius, Math.min(height - visRadius - 124, d.y)); });
 
     nearlyActiveNode.transition().duration(transition_duration)
-        .attr("cx", function(d) { return d.x; })
-        .attr("cy", function(d) { return d.y; });
+        // .attr("cx", function(d) { return d.x; })
+        // .attr("cy", function(d) { return d.y; });
+        .attr("cx", function(d) { return d.x = Math.max(visRadius, Math.min(width - visRadius, d.x)); })
+        .attr("cy", function(d) { return d.y = Math.max(visRadius, Math.min(height - visRadius - 124, d.y)); });
 
     nodeTxt.transition().duration(transition_duration)
         .attr("x", function(d) { return d.x; })
