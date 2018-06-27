@@ -10,13 +10,15 @@
 <ul id="table-list"></ul>
 
 <script>
-	setHeader = function(xhr) { xhr.setRequestHeader("X-API-KEY", "95e5d50a-5271-4ea0-a6fb-0165bdde92f5"); }
+	// setHeader = function(xhr) { xhr.setRequestHeader("X-API-KEY", "95e5d50a-5271-4ea0-a6fb-0165bdde92f5"); }
+	setHeader = function(xhr) { xhr.setRequestHeader("X-API-KEY", "ea2b40c5-77ef-11e8-b325-0c4de9cfe672"); }
 	$.ajax({
-          url: 'https://free-ice-cream.appspot.com/v1/tables/',
+          // url: 'https://free-ice-cream.appspot.com/v1/tables/',
+					url: 'https://hivemind.fic.li/v1/tables/',
           type: 'GET',
           dataType: 'json',
           success: function(data) {
-			console.log(data);
+						console.log(data);
           	data.forEach(function(table) {
 							// SJ This if(){}  hides the test table so that we know it will always be a full network.
 							if(table.id != "0f71297a-fe57-11e6-8aae-7f30d05f4207"){//

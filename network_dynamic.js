@@ -129,7 +129,9 @@ function setTable(){
 
   console.log("clearing: " + clearingTable);
   if(!clearingTable) {
-      new_call = "https://free-ice-cream.appspot.com/v1/tables/"+current_table+"?nocache=" + (new Date()).getTime();
+      // new_call = "https://free-ice-cream.appspot.com/v1/tables/"+current_table+"?nocache=" + (new Date()).getTime();
+      new_call = "https://hivemind.fic.li/v1/tables/"+current_table+"?nocache=" + (new Date()).getTime();
+
       console.log(new_call)
       d3.json(new_call)
           .header("X-API-KEY", api_key)
@@ -725,7 +727,8 @@ clearTable = function() {
         clearingTable = true;
         setHeader = function(xhr) { xhr.setRequestHeader("X-API-KEY", api_key); }
         $.ajax({
-              url: 'https://free-ice-cream.appspot.com/v1/tables/' + tableId + '/clear',
+              // url: 'https://free-ice-cream.appspot.com/v1/tables/' + tableId + '/clear',
+              url: 'https://hivemind.fic.li/v1/tables/' + tableId + '/clear',
               type: 'PUT',
               dataType: 'json',
               success: function(data) {
@@ -994,7 +997,7 @@ var
   // var to store the current goal - set to false by default because we want to show the regular data unless a button is clicked
   current_goal = false,
   // Number of players required to trigger display of the buttons
-  players_required_for_filtering = 1
+  players_required_for_filtering = 0
 ;
 
 // Listener for clicking a filter button
