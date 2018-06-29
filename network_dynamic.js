@@ -21,6 +21,7 @@ var node_goal_colors = Array(
   '#4146f4', // 19
   '#f44176', // 20
   '#f441b8', // 21
+  '#bf2d2d',//22
 );
 
 // These IDs are reserved
