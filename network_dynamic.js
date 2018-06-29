@@ -88,7 +88,7 @@ activePercent = function(node) {
     if(node.group == 0) {
         return node.active_percent > 1 ? 100 : (node.active_percent * 100).toFixed(2);
     } else {
-        console.log(node);
+        // console.log(node);
         return ((node.balance / node.activation_amount) * 100).toFixed(5);
     }
 
@@ -99,6 +99,7 @@ nodeInfoHTML = function(node) {
     html += node.short_name ? ('<h2>'+node.short_name +'</h2>') : '';
     html += '<h3>'+node.name+'</h3>';
     html += node.group < 8 ? '<p>activation: ' + activePercent(node) + '%</p><p> stored $: ' + node.resources + '</p>' : '';
+    html += '<div class="node_filter_btn" data-goal-id="'+node.group+'">Filter by goal ' + node.group + '</div>';
     return html;
 }
 
@@ -127,12 +128,12 @@ function setTable(){
   // If current_goal is set (i.e. anything but false) use the full table (because we don't want it filtering by what the users are connected to), otherwise use the regular table from the URL
   var current_table = current_goal ? full_table : tableId;
 
-  console.log("clearing: " + clearingTable);
+  // console.log("clearing: " + clearingTable);
   if(!clearingTable) {
       // new_call = "https://free-ice-cream.appspot.com/v1/tables/"+current_table+"?nocache=" + (new Date()).getTime();
       new_call = "https://hivemind.fic.li/v1/tables/"+current_table+"?nocache=" + (new Date()).getTime();
 
-      console.log(new_call)
+      // console.log(new_call)
       d3.json(new_call)
           .header("X-API-KEY", api_key)
           .get(function(error, data) {
@@ -141,6 +142,8 @@ function setTable(){
               if (current_layout_checksum !== previous_layout_checksum || previous_goal != current_goal) { // @JMLD added current/previous goal comparison to if statement
 
                   previous_layout_checksum = current_layout_checksum;
+
+                  // console.log(data);
 
                   // @JMLD
 
@@ -171,7 +174,7 @@ function setTable(){
                   // If there's a current goal selected...
                   if ( current_goal ){
                     // ...and it's a valid goal #
-                    if (current_goal > 0 && current_goal < 8){
+                    // if (current_goal > 0 && current_goal < 8){
 
                       // console.log('BEFORE',data);
 
@@ -233,6 +236,47 @@ function setTable(){
                       data.network.nodes = filtered_nodes;
 
                       // console.log('AFTER',data);
+                    // }
+                  } else {
+                    // If we haven't made filter buttons...
+                    if (!filter_buttons_made){
+                      // Remember that we've made them so don't do it again
+                      filter_buttons_made = true;
+                      // Get goal IDs from table data
+                      var goal_ids = Array();
+                      for (var key in data.network.nodes) {
+                        if (data.network.nodes.hasOwnProperty(key)) {
+                          var node_goal_id = data.network.nodes[key]['group']; // or ['id']?
+                          // If we've not already added this goal to the array, add it
+                          if ( goal_ids.indexOf( node_goal_id ) == -1 ){
+                            goal_ids.push( node_goal_id );
+                          }
+                        }
+                      }
+                      // If we have some goals
+                      if ( goal_ids.length > 0 ){
+                        // Sort into ascending numerical order
+                        goal_ids.sort(
+                          function(a, b){
+                            return a-b
+                          }
+                        );
+                        // Loop
+                        for (var key in goal_ids) {
+                          // Get the goal id
+                          var __gid = goal_ids[key];
+                          // Make a filter button for it
+                          $('.filter_btn')
+                            .eq(0)
+                            .clone()
+                            .attr('data-goal-id', __gid)
+                            .addClass('goal_' + __gid)
+                            .text('Goal ' + __gid)
+                            .appendTo('#filter_btns')
+                            .show()
+                          ;
+                        }
+                      }
                     }
                   }
 
@@ -265,7 +309,7 @@ function setTable(){
                       }
                       else if(graph.nodes[h].group < 8 ){
                           graph.nodes[h].index = goals_index++;
-                          console.log(graph.nodes[h].index + 'goals');
+                          // console.log(graph.nodes[h].index + 'goals');
                           goalArray.push(graph.nodes);
                       }
                       else{
@@ -279,7 +323,7 @@ function setTable(){
                   secondradiusScale = d3.scaleLinear().domain([nodeMinValue, nodeMaxValue]).range([1,50]);
 
                   drawnetwork(graph);
-                  console.log('GET call executed - the whole network redraws')
+                  // console.log('GET call executed - the whole network redraws')
               } else {
                   graph2 = data.network;
                   //console.log(graph2.nodes);
@@ -368,9 +412,11 @@ function drawnetwork(newdata) {
                 return 'tooltip' + d.id.replace(/-/g, '');
             })
             .classed('tooltip', true)
+            .attr('x', -10000)
+            .attr('z-index', 100000)
             .attr('width', tooltipWidth)
             .attr('height', tooltipHeight)
-            .style('opacity', 0)
+            // .style('opacity', 0)
             .attr('fill', 'white')
             .attr('font-size', '18px')
             .html(function(d){ return nodeInfoHTML(d); })
@@ -454,7 +500,7 @@ function drawnetwork(newdata) {
         })
         .attr('stroke-width', nodeOutlineWidth)
         .on('click', function(d){
-            console.log(d);
+            // console.log(d);
             tooltipClose();
             coordinates = d3.mouse(this);
             var mousex = coordinates[0];
@@ -514,18 +560,34 @@ function drawnetwork(newdata) {
             .attr('stroke-width', nodeOutlineWidth)
             .on('click', function(d){
                 tooltipClose();
-                console.log(d);
+                // console.log(d);
 
                 coordinates = d3.mouse(this);
                 var mousex = coordinates[0];
                 var mousey = coordinates[1];
+                // @JMLD
+                // Calculate the position of the tooltip, based on the centre of the map and the size of the tooltip
+                var tooltipX = ($('svg.d3').width() / 2) - (tooltipWidth / 2);
+                var tooltipY = ($('svg.d3').height() / 2) - (tooltipHeight / 2);
                 d3.select('.tooltip' + d.id.replace(/-/g, ''))
                 .attr('x', function(){
+                  // @JMLD
+                  // Either show the tooltip centred in the map OR position it according to the mouse position, depending on (boolean) value of tooltipCentred
+                  if (tooltipCentred){
+                    return tooltipX + tooltipOffsetX;
+                  } else {
                     return mousex + 15;
+                  }
                 })
                 .attr('y', function(){
-                        return mousey +15;
-                 })
+                  // @JMLD
+                  // Either show the tooltip centred in the map OR position it according to the mouse position, depending on (boolean) value of tooltipCentred
+                  if (tooltipCentred){
+                    return tooltipY + tooltipOffsetY;
+                  } else {
+                    return mousey + 15;
+                  }
+                })
                 .attr('font-size', '18px')
                 .attr('width', tooltipWidth)
                 .attr('height', tooltipHeight)
@@ -628,7 +690,7 @@ function drawnetwork(newdata) {
             pol_spacing_y = 700 / policiesArray.length;
             newnode.circlex = policies_center_x;
             newnode.circley = newnode.policiesGridPositionX_index * pol_spacing_y;
-            console.log(newnode.policiesGridPositionX_index);
+            // console.log(newnode.policiesGridPositionX_index);
         }
         else if (newnode.group < 8){
             newnode.goalsGridPositionX_index = goalsGridPositionX_index++;
@@ -636,14 +698,14 @@ function drawnetwork(newdata) {
             goal_spacing_y = 700 / goalArray.length;
             newnode.circlex = goals_center_x;
             newnode.circley = newnode.goalsGridPositionX_index * goal_spacing_y;
-            console.log(newnode.goalsGridPositionX_index + 'goalsUpdated');
+            // console.log(newnode.goalsGridPositionX_index + 'goalsUpdated');
         }
         else{
             newnode.goalsGridPositionX_index = playersGridPositionX_index++;
             players_spacing_y = 700 / playerArray.length;
             newnode.circlex = players_center_x;
             newnode.circley = playersGridPositionX_index * players_spacing_y;
-            console.log("No of players = "+playerArray.length);
+            // console.log("No of players = "+playerArray.length);
         }
 
         d3.selectAll('svg').classed('active', true)
@@ -685,7 +747,7 @@ function dragended(d) {
 
 function tickedd3() {
     if ( $('#grid_view_btn').hasClass('current') == true ){
-        console.log('circle view active');
+        // console.log('circle view active');
         link
             .attr("x1", function(d) { return d.source.circlex; })
             .attr("y1", function(d) { return d.source.circley; })
@@ -733,7 +795,7 @@ function tickedd3() {
 
 clearTable = function() {
     if(!clearingTable) {
-        console.log("clearing table...");
+        // console.log("clearing table...");
         clearingTable = true;
         setHeader = function(xhr) { xhr.setRequestHeader("X-API-KEY", api_key); }
         $.ajax({
@@ -742,11 +804,11 @@ clearTable = function() {
               type: 'PUT',
               dataType: 'json',
               success: function(data) {
-                console.log(data);
+                // console.log(data);
                 clearingTable = false;
               },
               error: function(error) {
-                console.log(error);
+                // console.log(error);
                 clearingTable = false;
             },
               beforeSend: setHeader
@@ -764,6 +826,7 @@ svg.append('text')
     .attr('text-anchor', 'middle')
     .text('2030 Hive Mind at Data4SDGs ')
 
+/*
 /////////////////////
 //////legend////////
 ///////////////////
@@ -905,7 +968,7 @@ svg.append('text')
     .attr('fill', linkStrokeColourActive)
     .attr('text-anchor', 'right')
     .text('negative impact');
-
+*/
 
 function circleLayout() {
     d3.selectAll('circle').transition();
@@ -945,16 +1008,12 @@ function circleLayout() {
         .attr("y2", function(d) { return d.target.circley; });
 
     node.transition().duration(transition_duration)
-        // .attr("cx", function(d) { return d.circlex; })
-        // .attr("cy", function(d) { return d.circley; });
-        .attr("cx", function(d) { return d.circlex = Math.max(visRadius, Math.min(width - visRadius, d.x)); })
-        .attr("cy", function(d) { return d.circley = Math.max(visRadius, Math.min(height - visRadius - 124, d.y)); });
+        .attr("cx", function(d) { return d.circlex; })
+        .attr("cy", function(d) { return d.circley; });
 
     nearlyActiveNode.transition().duration(transition_duration)
-        // .attr("cx", function(d) { return d.circlex; })
-        // .attr("cy", function(d) { return d.circley; });
-        .attr("cx", function(d) { return d.circlex = Math.max(visRadius, Math.min(width - visRadius, d.x)); })
-        .attr("cy", function(d) { return d.circley = Math.max(visRadius, Math.min(height - visRadius - 124, d.y)); });
+        .attr("cx", function(d) { return d.circlex; })
+        .attr("cy", function(d) { return d.circley; });
 
     nodeTxt.transition().duration(transition_duration)
         .attr("x", function(d) { return d.circlex + 20; })
@@ -999,27 +1058,68 @@ function networkLayout() {
 }
 
 function tooltipClose(){
-    d3.selectAll('.tooltip').attr('width', 0).attr('height', 0).style('opacity', 0).attr('font-size', '0px');
+    d3.selectAll('.tooltip').attr('x', -10000);//.attr('width', 0).attr('height', 0).style('opacity', 0).attr('font-size', '0px');
 };
 
 // @JMLD
+
+// Gets a query var from the url
+function get_query_var(query_var){
+  // Get query string from URL (minus the ?)
+  var query_string = window.location.search.substring(1);
+  // Split by & into array of 'key=value'
+  var vars = query_string.split("&");
+  // Loop
+  for (var i=0; i<vars.length ;i++) {
+    // Split 'key=value' into key, value
+    var pair = vars[i].split("=");
+    // If this key is our requested query var
+    if (pair[0] == query_var){
+      // Return its value
+      return pair[1];
+    }
+  }
+  // We didn't find it: return false
+  return(false);
+}
 
 // Variables
 var
   // How long animations last
   transition_duration = 3000,
   // The ID of the table that contains all data (used when we filter the map by goal)
-  full_table = "0f71297a-fe57-11e6-8aae-7f30d05f4207",
+  full_table = get_query_var('tableId'),
   // var to store the previous goal - so we can check whether a goal has changed
   previous_goal = false,
   // var to store the current goal - set to false by default because we want to show the regular data unless a button is clicked
   current_goal = false,
   // Number of players required to trigger display of the buttons
-  players_required_for_filtering = 0
+  players_required_for_filtering = 0,
+  // Know whether we've made our filter buttons yet
+  filter_buttons_made = false
 ;
 
+// Listener for clicking a filter button in the tooltip to select a goal to filter by
+$('svg.d3').on('click', '.node_filter_btn', function(e) {
+  // Get the goal ID
+  var goal_id = $(this).attr('data-goal-id');
+  // If it exists
+  if ( goal_id ? goal_id != "" : false ){
+    // Set current goal to this goal
+    current_goal = goal_id;
+    // Close the tooltip
+    tooltipClose();
+    // Trigger getting of data
+    setTable();
+    // Deselect all filter buttons
+    $('.filter_btn').removeClass('current');
+    // Toggle the new filter button on/off
+    $('.filter_btn.goal_' + goal_id).addClass('current');
+  }
+});
+
 // Listener for clicking a filter button
-$('.filter_btn').on('click', function(e) {
+$('body').on('click', '.filter_btn', function(e) {
   // Prevent this from messing up
   e.stopImmediatePropagation();
   // Deselect all other filter buttons
