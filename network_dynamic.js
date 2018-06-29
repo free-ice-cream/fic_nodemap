@@ -263,18 +263,20 @@ function setTable(){
                         );
                         // Loop
                         for (var key in goal_ids) {
-                          // Get the goal id
-                          var __gid = goal_ids[key];
-                          // Make a filter button for it
-                          $('.filter_btn')
-                            .eq(0)
-                            .clone()
-                            .attr('data-goal-id', __gid)
-                            .addClass('goal_' + __gid)
-                            .text('Goal ' + __gid)
-                            .appendTo('#filter_btns')
-                            .show()
-                          ;
+                          if ( goal_ids[key] != 0 ){ // don't use the 0 because that's not a goal
+                            // Get the goal id
+                            var __gid = goal_ids[key];
+                            // Make a filter button for it
+                            $('.filter_btn')
+                              .eq(0)
+                              .clone()
+                              .attr('data-goal-id', __gid)
+                              .addClass('goal_' + __gid)
+                              .text('Goal ' + __gid)
+                              .appendTo('#filter_btns')
+                              .show()
+                            ;
+                          }
                         }
                       }
                     }
