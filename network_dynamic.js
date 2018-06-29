@@ -1,13 +1,33 @@
 // COLOURS
-var nodeColourGoals01 = '#e5243b';
-var nodeColourGoals02 = '#dda63a';
-var nodeColourGoals03 = '#4c9f38';
-var nodeColourGoals04 = '#ff3a21';
-var nodeColourGoals05 = '#fd6925';
-var nodeColourGoals06 = '#3f7e44';
-var nodeColourGoals07 = '#0a97d9';
-var nodeColourGoals09 = '#0000ff';
-var playerColour = 'rgb(147, 26, 232)';
+var node_goal_colors = Array(
+  '#f45c42', // 1
+  '#f47141', // 2
+  '#f48241', // 3
+  '#f49a41', // 4
+  '#f4b241', // 5
+  '#f4cd41', // 6
+  '#f4df41', // 7
+  '#931ae8', // 8 - this one is used for the player its actually an RGB valye below but ive now made it as a hex too :)
+  '#eef441', // 9 - would you believe it, this is a policy, not a goal (for the love of G__)
+  '#d0f441', // 10
+  '#acf441', // 11
+  '#88f441', // 12
+  '#61f441', // 13
+  '#41f49a', // 14
+  '#41f4ca', // 15
+  '#41f4f1', // 16
+  '#41d0f4', // 17
+  '#41a3f4', // 18
+  '#4146f4', // 19
+  '#f44176', // 20
+  '#f441b8', // 21
+);
+
+// These IDs are reserved
+var reservedID__player = 8;
+var reservedID__policy = 9;
+
+// var playerColour = 'rgb(147, 26, 232)';
 
 var blinkColor = 'white';
 
@@ -85,7 +105,7 @@ var nodeTxt = svg.selectAll('.nodeText');
 
 activePercent = function(node) {
     // policy
-    if(node.group == 0) {
+    if(node.group == reservedID__policy) {
         return node.active_percent > 1 ? 100 : (node.active_percent * 100).toFixed(2);
     } else {
         // console.log(node);
@@ -98,21 +118,29 @@ nodeInfoHTML = function(node) {
     html = '<span style="font-size:18px; text-align:right; display:block; ">&nbsp;&nbsp;&nbsp;&nbsp;x</span>';
     html += node.short_name ? ('<h2>'+node.short_name +'</h2>') : '';
     html += '<h3>'+node.name+'</h3>';
-    html += node.group < 8 ? '<p>activation: ' + activePercent(node) + '%</p><p> stored $: ' + node.resources + '</p>' : '';
-    html += '<div class="node_filter_btn" data-goal-id="'+node.group+'">Filter by goal ' + node.group + '</div>';
+    // If it's not a user
+    if (node.group !== reservedID__player){
+      html += '<p>activation: ' + activePercent(node) + '%</p><p> stored $: ' + node.resources + '</p>';
+      // If it's not a policy either
+      if (node.group !== reservedID__policy){
+        // Add the filter button
+        html += '<div class="node_filter_btn" data-goal-id="'+node.group+'">Filter by target ' + node.group + '</div>';
+        html += '<div class="node_clear_filter_btn" style="display:none;">Clear filters</div>';
+      }
+    }
     return html;
 }
 
 nodeText = function(node) {
-    if(node.group > 0 && node.group < 8) {
+    if(node.group > 0 && node.group != reservedID__player && node.group != reservedID__policy) {
         // return node.short_name + " " + node.balance + "$";
         return node.short_name + " " + "$"+node.balance  ;
     } else {
-        if(node.group == 0) {
+        if(node.group == reservedID__policy) {
             let p = activePercent(node);
             return p == 100 ? "" : p + "%";
         }
-        if(node.group == 8) {
+        if(node.group == reservedID__player) {
             return node.name;
         }
         return '';
@@ -126,14 +154,12 @@ clearingTable = false;
 function setTable(){
   // JMLD
   // If current_goal is set (i.e. anything but false) use the full table (because we don't want it filtering by what the users are connected to), otherwise use the regular table from the URL
-  var current_table = current_goal ? full_table : tableId;
+  var current_table = tableId;//current_goal ? full_table : tableId;
 
-  // console.log("clearing: " + clearingTable);
   if(!clearingTable) {
       // new_call = "https://free-ice-cream.appspot.com/v1/tables/"+current_table+"?nocache=" + (new Date()).getTime();
       new_call = "https://hivemind.fic.li/v1/tables/"+current_table+"?nocache=" + (new Date()).getTime();
 
-      // console.log(new_call)
       d3.json(new_call)
           .header("X-API-KEY", api_key)
           .get(function(error, data) {
@@ -142,8 +168,7 @@ function setTable(){
               if (current_layout_checksum !== previous_layout_checksum || previous_goal != current_goal) { // @JMLD added current/previous goal comparison to if statement
 
                   previous_layout_checksum = current_layout_checksum;
-
-                  // console.log(data);
+                  // console.log('Getting data...',data);
 
                   // @JMLD
 
@@ -164,7 +189,8 @@ function setTable(){
                     // If there are
                     } else {
                       // Show filter buttons
-                      $('#filter_btns').show();
+                      // $('#filter_btns').show();
+                      $('#filter_btns').hide(); // @Simon if you want to see filter buttons, remove this line and uncomment the one above
                     }
                   }
 
@@ -174,7 +200,7 @@ function setTable(){
                   // If there's a current goal selected...
                   if ( current_goal ){
                     // ...and it's a valid goal #
-                    // if (current_goal > 0 && current_goal < 8){
+                    if (current_goal != reservedID__policy && current_goal != reservedID__player){
 
                       // console.log('BEFORE',data);
 
@@ -215,6 +241,11 @@ function setTable(){
                             filtered_links.push( el );
                             // Record the ID of the source, so when we loop through the nodes we know which ones to keep
                             source_nodes.push( el['source'] );
+                          } else if ( el['source'] == goal_id ){
+                            // add this link to the new array
+                            filtered_links.push( el );
+                            // Record the ID of the source, so when we loop through the nodes we know which ones to keep
+                            source_nodes.push( el['target'] );
                           }
                         }
                       }
@@ -236,7 +267,7 @@ function setTable(){
                       data.network.nodes = filtered_nodes;
 
                       // console.log('AFTER',data);
-                    // }
+                    }
                   } else {
                     // If we haven't made filter buttons...
                     if (!filter_buttons_made){
@@ -263,7 +294,7 @@ function setTable(){
                         );
                         // Loop
                         for (var key in goal_ids) {
-                          if ( goal_ids[key] != 0 ){ // don't use the 0 because that's not a goal
+                          if ( goal_ids[key] != reservedID__player && goal_ids[key] != reservedID__policy ){
                             // Get the goal id
                             var __gid = goal_ids[key];
                             // Make a filter button for it
@@ -305,16 +336,14 @@ function setTable(){
                   policiesArray = [];
                   playerArray = [];
                   for (var h = 0; h < graph.nodes.length; h++) {
-                      if(graph.nodes[h].group === 0 ){
+                      if ( graph.nodes[h].group === reservedID__policy ){
                           graph.nodes[h].index = policies_index++;
                           policiesArray.push(graph.nodes);
-                      }
-                      else if(graph.nodes[h].group < 8 ){
+                      } else if ( graph.nodes[h].group !== reservedID__player ){
                           graph.nodes[h].index = goals_index++;
                           // console.log(graph.nodes[h].index + 'goals');
                           goalArray.push(graph.nodes);
-                      }
-                      else{
+                      } else {
                           graph.nodes[h].index = players_index++;
                           playerArray.push(graph.nodes);
                       }
@@ -361,7 +390,7 @@ function setTable(){
                       });
 
                       // apply fill on update
-                      if(graph2.nodes[b].group === 0) {
+                      if(graph2.nodes[b].group === reservedID__policy) {
                           d3.select('.a'+graph2.nodes[b].id.replace(/-/g, '')).attr('fill', graph2.nodes[b].active === true ? nodeColourPolicy : nodeInactiveFill);
                       }
 
@@ -399,7 +428,12 @@ function drawnetwork(newdata) {
         .attr('class', function(d){
             return 'nodetext' + d.id.replace(/-/g, '');
         })
-        .attr('fill', function(d) { return (d.group > 0 && d.group < 8 ? 'white' : 'gray') })
+        .attr('fill', function(d) {
+          if (d.group !== reservedID__player && d.group !== reservedID__policy){
+            return 'white';
+          }
+          return 'gray';
+        })
         .classed('nodeText', true)
         .attr('text-anchor', 'middle')
         .attr('transform', 'translate(0,120)')
@@ -436,65 +470,20 @@ function drawnetwork(newdata) {
             return radiusScale(d.resources);
         })
         .attr('fill', function(d){
-            if(d.group === 8){
-              return playerColour;
+            if( d.active === true && d.group <= node_goal_colors.length && d.group != reservedID__policy ){
+              return node_goal_colors[d.group-1];
+            } else {
+              return nodeInactiveFill;
             }
-            if(d.active === true && d.group === 7){
-              // NOTE SJ TODO ALL THIS COULD BE DONE WITH AN ARRAY AND IT WOULD MAKE THE WHOLE SYSTEM EXTENSIBLE
-              return nodeColourGoals07;
-            }
-            if(d.active === true && d.group === 6){
-              return nodeColourGoals06;
-            }
-            if(d.active === true && d.group === 5){
-              return nodeColourGoals05;
-            }
-            if(d.active === true && d.group === 4){
-              return nodeColourGoals04;
-            }
-            if(d.active === true && d.group === 3){
-              return nodeColourGoals03;
-            }
-            if(d.active === true && d.group === 2){
-              return nodeColourGoals02;
-            }
-            if(d.active === true && d.group === 1){
-              return nodeColourGoals01;
-            }
-            else if(d.active === true && d.group === 0){
-                return nodeColourPolicy;
-            }
-            else {
-                    return nodeInactiveFill;
-                }
-            })
+          })
         .attr('stroke', function(d){
             /*if(d.resources > threshold){
                 return nodeOutlineColour;
             }*/
-            if(d.active === false && d.group === 7){
-              return nodeColourGoals07;
-            }
-            if(d.active === false && d.group === 6){
-              return nodeColourGoals06;
-            }
-            if(d.active === false && d.group === 5){
-              return nodeColourGoals05;
-            }
-            if(d.active === false && d.group === 4){
-              return nodeColourGoals04;
-            }
-            if(d.active === false && d.group === 3){
-              return nodeColourGoals03;
-            }
-            if(d.active === false && d.group === 2){
-              return nodeColourGoals02;
-            }
-            if(d.active === false && d.group === 1){
-              return nodeColourGoals01;
-            }
-            else {
-                return nodeInactiveStroke;
+            if( d.active === false && d.group <= node_goal_colors.length && d.group != reservedID__policy ){
+              return node_goal_colors[d.group-1];
+            } else {
+              return nodeInactiveStroke;
             }
         })
         .attr('class', function(d){
@@ -563,7 +552,6 @@ function drawnetwork(newdata) {
             .on('click', function(d){
                 tooltipClose();
                 // console.log(d);
-
                 coordinates = d3.mouse(this);
                 var mousex = coordinates[0];
                 var mousey = coordinates[1];
@@ -686,23 +674,21 @@ function drawnetwork(newdata) {
     for (var r = 0; r < nodes.length; r++) {
          newnode = nodes[r];
 
-        if (newnode.group === 0){
+        if (newnode.group === reservedID__policy){
             newnode.policiesGridPositionX_index = policiesGridPositionX_index++;
 
             pol_spacing_y = 700 / policiesArray.length;
             newnode.circlex = policies_center_x;
             newnode.circley = newnode.policiesGridPositionX_index * pol_spacing_y;
             // console.log(newnode.policiesGridPositionX_index);
-        }
-        else if (newnode.group < 8){
+        } else if (newnode.group != reservedID__player){
             newnode.goalsGridPositionX_index = goalsGridPositionX_index++;
 
             goal_spacing_y = 700 / goalArray.length;
             newnode.circlex = goals_center_x;
             newnode.circley = newnode.goalsGridPositionX_index * goal_spacing_y;
             // console.log(newnode.goalsGridPositionX_index + 'goalsUpdated');
-        }
-        else{
+        } else {
             newnode.goalsGridPositionX_index = playersGridPositionX_index++;
             players_spacing_y = 700 / playerArray.length;
             newnode.circlex = players_center_x;
@@ -757,16 +743,16 @@ function tickedd3() {
             .attr("y2", function(d) { return d.target.circley; });
 
         node
-            // .attr("cx", function(d) { return d.circlex; })
-            // .attr("cy", function(d) { return d.circley; });
-            .attr("cx", function(d) { return d.circlex = Math.max(visRadius, Math.min(width - visRadius, d.x)); })
-            .attr("cy", function(d) { return d.circley = Math.max(visRadius, Math.min(height - visRadius - 124, d.y)); });
+            .attr("cx", function(d) { return d.circlex; })
+            .attr("cy", function(d) { return d.circley; });
+            // .attr("cx", function(d) { return d.circlex = Math.max(visRadius, Math.min(width - visRadius, d.x)); })
+            // .attr("cy", function(d) { return d.circley = Math.max(visRadius, Math.min(height - visRadius - 124, d.y)); });
 
         nearlyActiveNode
-            // .attr("cx", function(d) { return d.circlex; })
-            // .attr("cy", function(d) { return d.circley; });
-            .attr("cx", function(d) { return d.circlex = Math.max(visRadius, Math.min(width - visRadius, d.x)); })
-            .attr("cy", function(d) { return d.circley = Math.max(visRadius, Math.min(height - visRadius - 124, d.y)); });
+            .attr("cx", function(d) { return d.circlex; })
+            .attr("cy", function(d) { return d.circley; });
+            // .attr("cx", function(d) { return d.circlex = Math.max(visRadius, Math.min(width - visRadius, d.x)); })
+            // .attr("cy", function(d) { return d.circley = Math.max(visRadius, Math.min(height - visRadius - 124, d.y)); });
 
         nodeTxt
             .attr("x", function(d) { return d.circlex + 20; })
@@ -1092,7 +1078,7 @@ var
   // The ID of the table that contains all data (used when we filter the map by goal)
   full_table = get_query_var('tableId'),
   // var to store the previous goal - so we can check whether a goal has changed
-  previous_goal = false,
+  previous_goal = -1,
   // var to store the current goal - set to false by default because we want to show the regular data unless a button is clicked
   current_goal = false,
   // Number of players required to trigger display of the buttons
@@ -1107,6 +1093,9 @@ $('svg.d3').on('click', '.node_filter_btn', function(e) {
   var goal_id = $(this).attr('data-goal-id');
   // If it exists
   if ( goal_id ? goal_id != "" : false ){
+    // Hide filter button / show clear filter button
+    $(this).hide();
+    $(this).siblings('.node_clear_filter_btn').show();
     // Set current goal to this goal
     current_goal = goal_id;
     // Close the tooltip
@@ -1118,6 +1107,16 @@ $('svg.d3').on('click', '.node_filter_btn', function(e) {
     // Toggle the new filter button on/off
     $('.filter_btn.goal_' + goal_id).addClass('current');
   }
+});
+
+$('svg.d3').on('click', '.node_clear_filter_btn', function(e) {
+  // set current goal to false, so we can see the whole map again
+  current_goal = false;
+  // Trigger getting of data
+  setTable();
+  // Show node filter buttons and hide the clear filter buttons
+  $('.node_filter_btn').show();
+  $('.node_clear_filter_btn').hide();
 });
 
 // Listener for clicking a filter button
