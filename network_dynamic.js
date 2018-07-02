@@ -85,19 +85,28 @@ var svg = d3.select(".d3"),
     width = +svg.attr("width"),
     height = +svg.attr("height"),
     color = d3.scaleOrdinal(d3.schemeCategory10);
-marginTop = 150;
+
+// @Simon change these to offset the node map
+// Negative values will offset the node map to the left of centre (horizontal) or above the centre (vertical)
+// Positive values will offset the node map to the right of centre (horizontal) or below the centre (vertical)
+// Units are px 
+var node_map_offset_x = 0;
+var node_map_offset_y = 0;
 
 var simulation = d3.forceSimulation()
     .force("charge", d3.forceManyBody().strength(-100))
     .force("link", d3.forceLink().id(function(d) { return d.id; }))
-    .force("center", d3.forceCenter(width / 2, 450))
+    .force("center", d3.forceCenter(
+      (width / 2) + node_map_offset_x,
+      (height / 2) + node_map_offset_y
+    ))
     .force("collide", d3.forceCollide(visRadius))
     .on("tick", tickedd3);
 
 var invisibleGroup = svg.append("g")
 invisibleGroup.append('rect').attr('fill', 'transparent').attr('height', height).attr('width', width).attr('class', 'invisibleGroup')// .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")"),
 
-var g = svg.append("g").attr('class', 'networkGroup').attr("transform", "translate(" + 0 + "," + marginTop + ")"),
+var g = svg.append("g").attr('class', 'networkGroup'),
     link = g.append("g").attr("stroke", "#000").attr("stroke-width", 1.5).selectAll(".link"),
     node = g.append("g").attr("stroke", "#fff").attr("stroke-width", 1.5).selectAll(".node"),
     nearlyActiveNode =  g.append("g").selectAll(".nearlyActiveNode");
@@ -437,7 +446,7 @@ function drawnetwork(newdata) {
         })
         .classed('nodeText', true)
         .attr('text-anchor', 'middle')
-        .attr('transform', 'translate(0,120)')
+        .attr('transform', 'translate(0,-30)')
         .merge(nodeTxt);
 
 
@@ -746,14 +755,10 @@ function tickedd3() {
         node
             .attr("cx", function(d) { return d.circlex; })
             .attr("cy", function(d) { return d.circley; });
-            // .attr("cx", function(d) { return d.circlex = Math.max(visRadius, Math.min(width - visRadius, d.x)); })
-            // .attr("cy", function(d) { return d.circley = Math.max(visRadius, Math.min(height - visRadius - 124, d.y)); });
 
         nearlyActiveNode
             .attr("cx", function(d) { return d.circlex; })
             .attr("cy", function(d) { return d.circley; });
-            // .attr("cx", function(d) { return d.circlex = Math.max(visRadius, Math.min(width - visRadius, d.x)); })
-            // .attr("cy", function(d) { return d.circley = Math.max(visRadius, Math.min(height - visRadius - 124, d.y)); });
 
         nodeTxt
             .attr("x", function(d) { return d.circlex + 20; })
@@ -765,7 +770,7 @@ function tickedd3() {
             // .attr("cx", function(d) { return d.x; })
             // .attr("cy", function(d) { return d.y; })
             .attr("cx", function(d) { return d.x = Math.max(visRadius, Math.min(width - visRadius, d.x)); })
-            .attr("cy", function(d) { return d.y = Math.max(visRadius, Math.min(height - visRadius - 124, d.y)); })
+            .attr("cy", function(d) { return d.y = Math.max(visRadius, Math.min(height - visRadius, d.y)); })
 
         link.attr("x1", function(d) { return d.source.x; })
               .attr("y1", function(d) { return d.source.y; })
@@ -778,7 +783,7 @@ function tickedd3() {
             // .attr("cx", function(d) { return d.x; })
             // .attr("cy", function(d) { return d.y; })
             .attr("cx", function(d) { return d.x = Math.max(visRadius, Math.min(width - visRadius, d.x)); })
-            .attr("cy", function(d) { return d.y = Math.max(visRadius, Math.min(height - visRadius - 124, d.y)); });
+            .attr("cy", function(d) { return d.y = Math.max(visRadius, Math.min(height - visRadius, d.y)); });
     }
 }
 
@@ -1032,13 +1037,13 @@ function networkLayout() {
         // .attr("cx", function(d) { return d.x; })
         // .attr("cy", function(d) { return d.y; });
         .attr("cx", function(d) { return d.x = Math.max(visRadius, Math.min(width - visRadius, d.x)); })
-        .attr("cy", function(d) { return d.y = Math.max(visRadius, Math.min(height - visRadius - 124, d.y)); });
+        .attr("cy", function(d) { return d.y = Math.max(visRadius, Math.min(height - visRadius, d.y)); });
 
     nearlyActiveNode.transition().duration(transition_duration)
         // .attr("cx", function(d) { return d.x; })
         // .attr("cy", function(d) { return d.y; });
         .attr("cx", function(d) { return d.x = Math.max(visRadius, Math.min(width - visRadius, d.x)); })
-        .attr("cy", function(d) { return d.y = Math.max(visRadius, Math.min(height - visRadius - 124, d.y)); });
+        .attr("cy", function(d) { return d.y = Math.max(visRadius, Math.min(height - visRadius, d.y)); });
 
     nodeTxt.transition().duration(transition_duration)
         .attr("x", function(d) { return d.x; })
