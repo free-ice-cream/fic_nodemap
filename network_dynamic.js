@@ -135,7 +135,7 @@ nodeInfoHTML = function(node) {
 nodeText = function(node) {
     if(node.group > 0 && node.group != reservedID__player && node.group != reservedID__policy) {
         // return node.short_name + " " + node.balance + "$";
-        return node.short_name + " " + "$"+node.balance  ;
+        return node.short_name + " " + "£"+node.balance  ;
     } else {
         if(node.group == reservedID__policy) {
             let p = activePercent(node);
@@ -813,7 +813,7 @@ svg.append('text')
     .attr('fill', 'white')
     .attr('class', 'h1')
     .attr('text-anchor', 'middle')
-    .text('2030 Hive Mind at Data4SDGs ')
+    .text('Playable Data for Human Health')
 
 /*
 /////////////////////
@@ -970,7 +970,7 @@ function circleLayout() {
         .attr('fill', 'white')
         .attr('text-anchor', 'middle')
         .attr('class', 'gridViewText')
-        .text('Policies')
+        .text('Research or Policy Focus')
 
     svg.append('text')
         .attr('x', players_center_x)
@@ -986,7 +986,8 @@ function circleLayout() {
         .attr('fill', 'white')
         .attr('text-anchor', 'middle')
         .attr('class', 'gridViewText')
-        .text('Goals')
+        // .text('Goals')
+        .text('Targets')
 
     tooltipClose()
     simulation.stop();
