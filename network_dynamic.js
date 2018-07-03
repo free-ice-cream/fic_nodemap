@@ -45,6 +45,9 @@ var nodeMinValue;
 var linkMaxValue;
 var linkMinValue;
 
+// @Simon use this to decide whether to show node names instead of node activation amount / resources
+var node_show_names = true;
+
 var players_center_x;
 var policies_center_x;
 var goals_center_x;
@@ -89,7 +92,7 @@ var svg = d3.select(".d3"),
 // @Simon change these to offset the node map
 // Negative values will offset the node map to the left of centre (horizontal) or above the centre (vertical)
 // Positive values will offset the node map to the right of centre (horizontal) or below the centre (vertical)
-// Units are px 
+// Units are px
 var node_map_offset_x = 0;
 var node_map_offset_y = 0;
 
@@ -142,19 +145,23 @@ nodeInfoHTML = function(node) {
 }
 
 nodeText = function(node) {
-    if(node.group > 0 && node.group != reservedID__player && node.group != reservedID__policy) {
-        // return node.short_name + " " + node.balance + "$";
-        return node.short_name + " " + "£"+node.balance  ;
+  if (node_show_names){
+    return node.name;
+  } else {
+    if ( node.group > 0 && node.group != reservedID__player && node.group != reservedID__policy ){
+      // return node.short_name + " " + node.balance + "$";
+      return node.short_name + " " + "£"+node.balance  ;
     } else {
-        if(node.group == reservedID__policy) {
-            let p = activePercent(node);
-            return p == 100 ? "" : p + "%";
-        }
-        if(node.group == reservedID__player) {
-            return node.name;
-        }
-        return '';
+      if ( node.group == reservedID__policy ){
+        let p = activePercent(node);
+        return p == 100 ? "" : p + "%";
+      }
+      if ( node.group == reservedID__player ){
+        return node.name;
+      }
+      return '';
     }
+  }
 }
 
 var previous_layout_checksum = "";
